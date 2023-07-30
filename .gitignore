@@ -1,0 +1,3 @@
+./script/AutogluonModels
+./data/csv_file
+.env
