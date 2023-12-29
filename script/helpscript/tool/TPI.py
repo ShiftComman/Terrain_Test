@@ -4,7 +4,7 @@ from arcpy.ia import *
 from arcpy import env
 import time
 
-work_path = "D:\ArcgisProject\SY_RASTER\Fill.gdb"
+work_path = "D:\ArcGISProjects\syraster\sy_result.gdb"
 env.workspace = work_path
 
 
@@ -251,22 +251,16 @@ def get_result_raster_factor(dem_raster, tpi_size):
 
 # 5mDEM min 5  max 45  range 5*5 45*5
 
-dem_raster_5m = arcpy.Raster("SY_DEM_5_DT_3")
-
-print('start')
-
-result_5m = get_result_raster(dem_raster_5m,11,45,1,5)
-result_5m.save("runker54666")
+dem_raster_5m = arcpy.Raster("D:\ArcGISProjects\MyProject\LBCL.gdb\SY_DEM_5_DT_3")
 
 
 def main():
     print("Start!")
     start_time = time.time()
     # result_5m = get_result_raster_factor(dem_raster_5m, 200)
-    for min_size in range(3,11,2):
-        for max_size in range(15,55,2):
-            result_5m = get_result_raster(dem_raster_5m, min_size, max_size, 1, 5)
-            result_5m.save(f"SY_FACTOR_{min_size}_{max_size}_1_5")
+    result_5m = get_result_raster(dem_raster_5m, 5, 45, 1, 5)
+    result_5m.save("SY_FACTOR_5_45_1_5")
     print(f"耗时{time.time()-start_time} S")
 
 
+main()
