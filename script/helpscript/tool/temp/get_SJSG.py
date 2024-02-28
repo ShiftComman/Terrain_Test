@@ -1,4 +1,4 @@
-# coding:utf-8
+# 按坡度获取山脊山谷
 import arcpy
 from arcpy.sa import *
 

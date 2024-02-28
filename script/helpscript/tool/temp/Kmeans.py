@@ -1,3 +1,4 @@
+# Kmeans坡度分类
 import arcpy
 import numpy as np
 from sklearn.cluster import KMeans
