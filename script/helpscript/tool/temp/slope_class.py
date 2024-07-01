@@ -4,7 +4,7 @@ from arcpy.ia import *
 from arcpy import env
 import time
 
-work_path = "D:\ArcGISProjects\syraster\sy_result.gdb"
+work_path = r"D:\ArcGISProjects\workspace\shbyq\feature_raster_file\features_data_dy.gdb"
 env.workspace = work_path
 
 
@@ -251,7 +251,7 @@ def get_result_raster_factor(dem_raster, tpi_size):
 
 # 5mDEM min 5  max 45  range 5*5 45*5
 
-dem_raster_5m = arcpy.Raster("D:\ArcGISProjects\MyProject\LBCL.gdb\SY_DEM_5_DT_3")
+dem_raster_5m = arcpy.Raster(r"D:\ArcGISProjects\workspace\shbyq\feature_raster_file\features_data_dy.gdb\DEM")
 
 
 def main():
