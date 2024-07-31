@@ -2,7 +2,6 @@ import arcpy
 from arcpy import env
 import arcpy
 import traceback
-import multiprocessing
 import os
 import numpy as np
 from tqdm import tqdm
@@ -95,8 +94,8 @@ def find_neighbors(shape, features):
 if __name__ == "__main__":
     env.workspace = r'C:\Users\Runker\Desktop\DEM_test\multi.gdb'
     env.overwriteOutput = True
-    input_fc = "DY_single_end"
-    output_fc = "DY_single_end_result"
+    input_fc = "DY_single"
+    output_fc = "DY_single_end"
     land_type_field = "DLMC"
     dz_field = "DZ"
     thresholds = {

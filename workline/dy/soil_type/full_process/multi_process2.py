@@ -109,16 +109,17 @@ def find_neighbors(shape, features, land_type_field, land_type):
     return [f for f in features if f[shape_index].touches(shape) and f[land_type_field] == land_type]
 
 if __name__ == "__main__":
-    env.workspace = r'D:\ArcGISProjects\workspace\shbyq\DZ.gdb'
+    env.workspace = r'C:\Users\Runker\Desktop\DEM_test\multi.gdb'
     env.overwriteOutput = True
-    input_fc = "DY_SD_MZ_SLOPEPOSITION_INTERSECT_SINGLE_COPY"
-    output_fc = "DY_SD_MZ_SLOPEPOSITION_INTERSECT_SINGLE_COPY_endd"
+    input_fc = "DY_single"
+    output_fc = "DY_single_end2"
     land_type_field = "DLMC"
     dz_field = "DZ"
     thresholds = {
-        "01": 51,
-        "03": 2000,
-        "04": 2000,
+        "01": 50,
+        "03": 1000,
+        "04": 1000,
+        # 可以继续添加其他DZ值的阈值
     }
 
-    merge_small_parcels_optimized(input_fc, output_fc, land_type_field, dz_field, thresholds, batch_size=1000)
+    merge_small_parcels_optimized(input_fc, output_fc, land_type_field, dz_field, thresholds,batch_size=1000)
