@@ -141,10 +141,10 @@ def merge_small_parcels_multiprocess(input_fc, output_fc, land_type_field, dz_fi
 if __name__ == "__main__":
     arcpy.env.workspace = r'C:\Users\Runker\Desktop\DEM_test\multi.gdb'
     arcpy.env.overwriteOutput = True
-    input_fc = r"C:\Users\Runker\Desktop\DEM_test\multi.gdb\DY_single"
-    output_fc = "DY_single_end_4"
+    input_fc = r"C:\Users\Runker\Desktop\DEM_test\multi.gdb\test"
+    output_fc = "SB_single_end_4"
     land_type_field = "DLMC"
-    dz_field = "DZ"
+    dz_field = "DLDM"
     thresholds = {
         "01": 50,
         "03": 1000,
@@ -152,4 +152,4 @@ if __name__ == "__main__":
     }
     # 指定自定义的临时文件夹路径
     custom_temp_folder = r"C:\Users\Runker\Desktop\DEM_test"
-    merge_small_parcels_multiprocess(input_fc, output_fc, land_type_field, dz_field, thresholds, num_processes=4, temp_folder=custom_temp_folder)
+    merge_small_parcels_multiprocess(input_fc, output_fc, land_type_field, dz_field, thresholds, num_processes=1, temp_folder=custom_temp_folder)
