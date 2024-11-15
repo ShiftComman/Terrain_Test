@@ -6,7 +6,6 @@ from shapely.validation import make_valid
 from tqdm import tqdm
 import time
 import logging
-from shapely.strtree import STRtree
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -22,16 +21,9 @@ def safe_union(geom1, geom2):
 
 def find_neighbors(parcel, gdf):
     try:
-        # 创建 STRtree 索引
-        tree = STRtree(gdf.geometry.values)
-        # 使用 query 方法查找相交的几何体
-        possible_matches_index = tree.query(parcel.geometry, predicate="touches")
-        
-        # 如果 possible_matches_index 是二维数组，取第二行（树索引）
-        if possible_matches_index.ndim > 1:
-            possible_matches_index = possible_matches_index[1]
-            
-        return gdf.iloc[possible_matches_index]
+        possible_matches_index = list(gdf.sindex.intersection(parcel.geometry.bounds))
+        possible_matches = gdf.iloc[possible_matches_index]
+        return possible_matches[possible_matches.geometry.touches(parcel.geometry)]
     except Exception as e:
         logging.error(f"在查找邻居时出错: {str(e)}")
         return gpd.GeoDataFrame()
@@ -305,13 +297,11 @@ def merge_small_parcels_two_phase(input_shp, output_base, dldm_field, dlmc_field
     result_single_part = result_truncated.explode(index_parts=True).reset_index(drop=True)
     result_single_part.to_file(output_shp, encoding='utf-8')
     logging.info(f"结果已保存至: {output_shp}")
-    
-    return gdf, total_merged, len(gdf)
 
 # 使用示例
 if __name__ == "__main__":
     input_shp = r"C:\Users\Runker\Desktop\ele_sb\sb_merge_data_single_split_curve.shp"
-    output_base = r"C:\Users\Runker\Desktop\ele_sb\sb_merge_data_single_split_curve_ends.shp"
+    output_base = r"C:\Users\Runker\Desktop\ele_sb\sb_merge_data_single_split_curve_end.shp"
     dldm_field = "DLDM"
     dlmc_field = "DLMC"
     base_thresholds = {
@@ -321,7 +311,7 @@ if __name__ == "__main__":
         "04": 500
     }
     
-    result_gdf, total_merged, final_count = merge_small_parcels_two_phase(
+    merge_small_parcels_two_phase(
         input_shp,
         output_base,
         dldm_field,
