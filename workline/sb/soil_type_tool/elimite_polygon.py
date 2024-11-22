@@ -300,9 +300,9 @@ def merge_small_parcels_two_phase(input_shp, output_base, dldm_field, dlmc_field
 
 # 使用示例
 if __name__ == "__main__":
-    input_shp = r"C:\Users\Runker\Desktop\ele_sb\sb_merge_data_single_split_curve.shp"
-    output_base = r"C:\Users\Runker\Desktop\ele_sb\sb_merge_data_single_split_curve_end.shp"
-    dldm_field = "DLDM"
+    input_shp = r"C:\Users\Runker\Desktop\ele_sb\gl_merge_data_singles.shp"
+    output_base = r"C:\Users\Runker\Desktop\ele_sb\gl_merge_data_singles_ele.shp"
+    dldm_field = "DLBM"
     dlmc_field = "DLMC"
     base_thresholds = {
         "01": 50,
