@@ -157,10 +157,10 @@ def main(point_shp_path, raster_folder_path, output_csv_path, keep_out_of_bounds
 
 # 测试
 if __name__ == "__main__":
-    point_shp_path = r"F:\cache_data\shp_file\gl\filter_train_point.shp"
-    raster_folder_path = r'F:\tif_features\county_feature\gl'
-    output_csv_path = r'F:\cache_data\zone_ana\gl\train_data\soil_type_train_point.csv'
+    point_shp_path = r"F:\cache_data\shp_file\ky\pca_filter_soiltype_train.shp"
+    raster_folder_path = r'F:\tif_features\county_feature\ky'
+    output_csv_path = r'F:\cache_data\zone_ana\ky\train_data\pca_soil_type_train_point.csv'
     keep_out_of_bounds = True
     fill_value = np.nan
-    log_file = r'F:\cache_data\zone_ana\gl\train_data\point_sample.log'
+    log_file = r'F:\cache_data\zone_ana\ky\train_data\pca_point_sample.log'
     main(point_shp_path, raster_folder_path, output_csv_path, keep_out_of_bounds, fill_value, log_file)

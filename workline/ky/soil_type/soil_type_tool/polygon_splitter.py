@@ -417,7 +417,7 @@ def main(shp_path, filter_area, max_area, method="curve", noise_factor=0.3,chunk
         )
     
 if __name__ == "__main__":
-    shp_path = r"C:\Users\Runker\Desktop\ele_sb\gl_merge_data_singles_5.shp"
+    shp_path = r"C:\Users\Runker\Desktop\ele_ky\ky_merge_data_single_2.shp"
     filter_area = 25000  # 需要切割的面积阈值
     max_area = 10000    # 切割后的最大面积
     method = "curve"
