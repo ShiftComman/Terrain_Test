@@ -135,13 +135,14 @@ def process_rasters(polygon_path, raster_folder, output_path, output_format='csv
     total_time = end_time - start_time
     logger.info(f"处理完成，总耗时: {total_time:.2f} 秒")
 
+
 if __name__ == "__main__":
-    polygon_path = Path(r"F:\cache_data\shp_file\gl\gl_predict_polygon.shp")
-    raster_folder = Path(r'F:\tif_features\county_feature\gl')
-    output_path = Path(r"F:\cache_data\zone_ana\gl\train_data\soil_type_predict.csv")
+    polygon_path = Path(r"C:\Users\Runker\Desktop\ele_ky\ky_merge_data_single_2_split_curve_1.shp")
+    raster_folder = Path(r'F:\tif_features\county_feature\ky')
+    output_path = Path(r"F:\cache_data\zone_ana\ky\train_data\soil_type_predict.csv")
     output_format = 'csv'
     
     # 使用多进程
-    process_rasters(polygon_path, raster_folder, output_path, output_format, simplify=True, simplify_tolerance=0.001, use_multiprocessing=True, num_workers=10)
+    process_rasters(polygon_path, raster_folder, output_path, output_format, simplify=True, simplify_tolerance=0.001, use_multiprocessing=True, num_workers=6)
     # 不使用多进程
     # process_rasters(polygon_path, raster_folder, output_path, output_format, simplify=True, simplify_tolerance=0.001, use_multiprocessing=False)
