@@ -97,10 +97,10 @@ def vector_to_aligned_raster(input_vector, reference_raster, output_raster, valu
 # 使用示例：
 if __name__ == "__main__":
     # 设置输入参数
-    input_vector = r"F:\cache_data\shp_file\gl\gl_sd_dltb_sthd.shp"  # 输入矢量路径
-    reference_raster = r"F:\tif_features\county_feature\gl\dem.tif"  # 参考栅格路径
-    output_raster = r"F:\tif_features\county_feature\gl\dl.tif"  # 输出栅格路径
-    value_field = "DLMC_DM"  # 可选：用于赋值的字段名
+    input_vector = r"F:\cache_data\shp_file\qz\qz_sd_polygon.shp"  # 输入矢量路径
+    reference_raster = r"F:\tif_features\county_feature\qz\dem.tif"  # 参考栅格路径
+    output_raster = r"F:\tif_features\county_feature\qz\DL.tif"  # 输出栅格路径
+    value_field = "DLDM"  # 可选：用于赋值的字段名
     nodata_value = 9999  # 无数据区域的填充值
     # 执行转换
     vector_to_aligned_raster(
