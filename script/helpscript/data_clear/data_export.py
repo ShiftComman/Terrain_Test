@@ -21,6 +21,7 @@ class Config:
     SAVE_PATH = os.getenv('SAVE_PATH')
     AREA_DICT_PATH = os.getenv('AREA_DICT_PATH')
     DTYPE_PATH = os.getenv('DTYPE_PATH')
+    DTYPE_ALL_PATH = os.getenv('DTYPE_ALL_PATH')
     
     
 class DataProcessor:
@@ -50,6 +51,11 @@ class DataProcessor:
         self.logger = logging.getLogger(__name__)
         
     def load_excel_dtype(self):
+        """加载excel数据类型"""
+        with open(Config.DTYPE_ALL_PATH, 'r', encoding='utf-8') as f:
+            dtype_dict = json.load(f)
+        return dtype_dict
+    def load_excel_dtype_read(self):
         """加载excel数据类型"""
         with open(Config.DTYPE_PATH, 'r', encoding='utf-8') as f:
             dtype_dict = json.load(f)
@@ -83,48 +89,71 @@ class DataProcessor:
             raise
     
     def merge_excel_files(self, file_list, use_columns, desc="合并文件"):
-        """合并多个Excel/CSV文件"""
         try:
             df_list = []
             chunk_size = 100000
+            dtype_dict = self.load_excel_dtype()
             
-            # 添加数据预处理函数
-            def preprocess_numeric_columns(df):
-                numeric_cols = [col for col in df.columns if col in self.load_excel_dtype() 
-                              and self.load_excel_dtype()[col] in ['float32', 'float64']]
-                for col in numeric_cols:
-                    # 将特殊字符替换为NaN
-                    df[col] = df[col].replace(['/', '-', '#', '', ' '], pd.NA)
-                    # 转换为数值类型
-                    df[col] = pd.to_numeric(df[col], errors='coerce')
+            def preprocess_column(df, column, target_type):
+                """
+                预处理单个列的数据，根据目标类型进行转换和填充
+                """
+                try:
+                    if target_type in ['int32', 'int64']:
+                        # 对于整数类型，无法转换的值填充为1111
+                        df[column] = pd.to_numeric(df[column], errors='coerce').fillna(1111).astype(target_type)
+                    
+                    elif target_type in ['float32', 'float64']:
+                        # 对于浮点数类型，无法转换的值填充为0.0001
+                        df[column] = pd.to_numeric(df[column], errors='coerce').fillna(0.0001).astype(target_type)
+                    
+                    else:
+                        # 对于字符串类型，填充空字符串
+                        df[column] = df[column].fillna('').astype(str)
+                    
+                except Exception as e:
+                    self.logger.error(f"处理列 {column} 时出错: {str(e)}")
+                    self.logger.error(f"列的当前数据: {df[column].head()}")
+                    raise
+                
                 return df
-            
+
             for file in tqdm(file_list, desc=desc):
                 try:
                     if file.endswith('.csv'):
-                        chunks = pd.read_csv(file, usecols=use_columns, chunksize=chunk_size,dtype=self.load_excel_dtype())
-                        for chunk in tqdm(chunks, desc=f"读取{os.path.basename(file)}", leave=False):
-                            chunk = preprocess_numeric_columns(chunk)
+                        # 读取CSV文件
+                        chunks = pd.read_csv(file, usecols=use_columns, chunksize=chunk_size,dtype=self.load_excel_dtype_read())
+                        for chunk in chunks:
+                            # 对每一列进行预处理
+                            for column, dtype in dtype_dict.items():
+                                if column in chunk.columns:
+                                    chunk = preprocess_column(chunk, column, dtype)
                             df_list.append(chunk)
                     else:
-                        # 首先读取文件的所有列名
-                        actual_columns = pd.read_excel(file, nrows=0).columns.tolist()
-                        missing_columns = set(use_columns) - set(actual_columns)
-                        if missing_columns:
-                            self.logger.error(f"""
-                            文件 {file} 缺少以下列:
-                            缺失的列: {list(missing_columns)}
-                            实际的列: {actual_columns}
-                            期望的列: {use_columns}
-                            """)
-                            continue  # 跳过这个文件而不是直接失败
-                            
-                        df = pd.read_excel(file, usecols=use_columns, dtype=self.load_excel_dtype())
-                        df = preprocess_numeric_columns(df)
+                        # 读取Excel文件
+                        df = pd.read_excel(file, usecols=use_columns,dtype=self.load_excel_dtype_read())
+                        # 对每一列进行预处理
+                        for column, dtype in dtype_dict.items():
+                            if column in df.columns:
+                                df = preprocess_column(df, column, dtype)
                         df_list.append(df)
+                        
                 except Exception as e:
-                    self.logger.error(f"读取{os.path.basename(file)}时出错: {str(e)}")
-            return pd.concat(df_list, ignore_index=True)
+                    self.logger.error(f"读取文件 {os.path.basename(file)} 时出错: {str(e)}")
+                    continue
+                
+            # 合并所有数据
+            if not df_list:
+                return pd.DataFrame()
+            
+            final_df = pd.concat(df_list, ignore_index=True)
+            
+            # 最后确保所有列的类型正确
+            for column, dtype in dtype_dict.items():
+                if column in final_df.columns:
+                    final_df[column] = final_df[column].astype(dtype)
+                
+            return final_df
             
         except Exception as e:
             self.logger.error(f"合并文件时出错: {str(e)}")
@@ -213,28 +242,6 @@ class DataProcessor:
             # 添加T前缀
             df['ydbht'] = 'T' + df['ydbh'].astype('str')
             df['yypbht'] = 'T' + df['yypbh'].astype('str')
-            
-            # 转换数据类型
-            int_cols = df.select_dtypes(include=['int32', 'int64']).columns
-            float_cols = df.select_dtypes(include=['float32', 'float64']).columns
-            string_cols = df.select_dtypes(include=['object']).columns
-            
-            with tqdm(total=len(int_cols) + len(float_cols) + len(string_cols), desc="转换数据类型") as pbar:
-                # 整数列保持整数类型
-                for col in int_cols:
-                    df[col] = df[col].astype('int64').fillna(0)
-                    pbar.update(1)
-                
-                # 浮点数列转为float32
-                for col in float_cols:
-                    df[col] = df[col].astype('float32').fillna(0.0001)
-                    pbar.update(1)
-                
-                # 字符串列转换
-                for col in string_cols:
-                    df[col] = df[col].astype('string').fillna('')
-                    pbar.update(1)
-            
             return df
             
         except Exception as e:
@@ -245,7 +252,10 @@ class DataProcessor:
         try:
             # 确保保存目录存在
             os.makedirs(os.path.dirname(self.save_path), exist_ok=True)
-            df.to_csv(self.save_path, index=False, encoding='utf-8-sig')
+            # 保存时指定数据类型,并设置dtype参数
+            df.to_csv(self.save_path, index=False)
+            # 保存为excel
+            df.to_excel(f"{self.save_path.replace('csv','xlsx')}", index=False)
             print(f"数据已保存到: {self.save_path}")
         except Exception as e:
             self.logger.error(f"保存数据时出错: {str(e)}")

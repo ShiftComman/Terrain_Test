@@ -84,9 +84,9 @@ if __name__ == "__main__":
         logger.addHandler(file_handler)
     
     for file in os.listdir(base_data_path):
-        if file.endswith('.csv'):
+        if file.endswith('.xlsx'):
             input_file = os.path.join(base_data_path, file)
-            output_file = os.path.join(shp_path, file.replace('.csv', '.shp')) 
+            output_file = os.path.join(shp_path, file.replace('.xlsx', '.shp')) 
             lon_col = 'dwjd'
             lat_col = 'dwwd'
             input_crs = 4326
