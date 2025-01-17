@@ -56,6 +56,6 @@ def fill_holes_by_envelope_with_attributes(in_shp, out_filled_shp):
     print("处理完成！")
 
 if __name__ == "__main__":
-    in_shp = r'F:\tif_features\county_feature\qz\slopepostion_smooth.shp'
+    in_shp = r'C:\Users\Runker\Desktop\slope_temp\qxg_slope_101_result_smooth.shp'
     out_filled_shp = in_shp.replace(".shp", "_filled.shp")
     fill_holes_by_envelope_with_attributes(in_shp, out_filled_shp)

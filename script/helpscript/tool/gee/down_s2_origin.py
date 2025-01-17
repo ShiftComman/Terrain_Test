@@ -13,7 +13,6 @@ import asyncio
 from urllib.parse import urlparse
 import aiofiles
 import ssl
-import json
 
 # 常量定义
 SENTINEL2_BANDS = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12'] # 哨兵2波段
@@ -22,7 +21,7 @@ ALL_BANDS = SENTINEL2_BANDS + QA_BANDS # 所有波段
 DEFAULT_SCALE = 10 # 默认像元大小
 DEFAULT_MAX_SIZE = 30000000  # 40MB # 每个子区域的最大大小
 DEFAULT_CLOUD_COVER = 20 # 云层覆盖率阈值
-MAX_CONCURRENT_DOWNLOADS = 3 # 并发下载的最大数量
+MAX_CONCURRENT_DOWNLOADS = 4 # 并发下载的最大数量
 DOWNLOAD_TIMEOUT = 1200  # 增加到20分钟
 CHUNK_SIZE = 1024 * 1024   # 增加到1MB
 
@@ -152,21 +151,14 @@ def get_sentinel2_collection(region: ee.Geometry, start_date: str, end_date: str
             .map(mask_s2_clouds))
 
 @backoff.on_exception(backoff.expo, Exception, max_tries=5)
-async def get_download_url(image: ee.Image, geometry: ee.Geometry, retry_with_smaller: bool = False) -> str:
-    """获取下载链接，添加重试机制"""
-    try:
-        return image.getDownloadURL({
-            'scale': DEFAULT_SCALE,
-            'region': geometry,
-            'format': 'GEO_TIFF',
-            'crs': 'EPSG:4326',
-            'maxPixels': 1e8
-        })
-    except ee.EEException as e:
-        if "User memory limit exceeded" in str(e) and retry_with_smaller:
-            # 仅在明确要求时才尝试使用更小的区域
-            raise GEEDownloadError("内存超限，需要重试", error_code=400)
-        raise
+async def get_download_url(image: ee.Image, geometry: ee.Geometry) -> str:
+    """获取下载链接，带重试机制"""
+    return image.getDownloadURL({
+        'scale': 10,
+        'region': geometry,
+        'format': 'GEO_TIFF',
+        'crs': 'EPSG:4326'
+    })
 
 async def download_file(url: str, output_path: str, logger: logging.Logger) -> None:
     """异步下载文件，带有更强大的错误处理和重试机制"""
@@ -230,67 +222,13 @@ async def download_file(url: str, output_path: str, logger: logging.Logger) -> N
     raise GEEDownloadError(error_msg)
 
 async def download_subregion(composite: ee.Image, sub_geometry: ee.Geometry, output_path: str, logger):
-    """下载子区域的影像，添加特殊错误处理"""
-    original_path = output_path
-    retry_count = 0
-    max_retries = 3
-
-    while retry_count < max_retries:
-        try:
-            if retry_count == 0:
-                # 首次尝试使用原始大小
-                url = await get_download_url(composite, sub_geometry, False)
-            else:
-                # 记录失败的区域信息
-                logger.warning(f"区域 {output_path} 下载失败，尝试分割处理")
-                # 保存失败的区域信息到文件
-                failed_info = {
-                    'original_path': original_path,
-                    'attempt': retry_count,
-                    'geometry': sub_geometry.getInfo()
-                }
-                failed_path = output_path.replace('.tif', '_failed_info.json')
-                with open(failed_path, 'w') as f:
-                    json.dump(failed_info, f)
-                
-                # 尝试使用更小的区域
-                smaller_geometries = adaptive_split_geometry(sub_geometry, DEFAULT_MAX_SIZE/(2**retry_count))
-                logger.info(f"将区域分割为 {len(smaller_geometries)} 个子区域")
-                
-                for i, smaller_geo in enumerate(smaller_geometries):
-                    sub_output = original_path.replace('.tif', f'_retry{retry_count}_part_{i+1}.tif')
-                    if os.path.exists(sub_output) and os.path.getsize(sub_output) > 0:
-                        logger.info(f"子文件已存在且非空，跳过：{sub_output}")
-                        continue
-                    
-                    try:
-                        url = await get_download_url(composite, smaller_geo, True)
-                        await download_file(url, sub_output, logger)
-                    except Exception as e:
-                        logger.error(f"下载子区域失败：{str(e)}")
-                        # 继续处理其他子区域，而不是直接失败
-                        continue
-                
-                # 如果至少有一个子区域下载成功，就认为是部分成功
-                return
-            
-            # 首次尝试的下载
-            await download_file(url, output_path, logger)
-            return
-            
-        except Exception as e:
-            retry_count += 1
-            logger.warning(f"下载失败 (尝试 {retry_count}/{max_retries}): {str(e)}")
-            if retry_count < max_retries:
-                await asyncio.sleep(10 * retry_count)  # 增加重试等待时间
-                continue
-            
-            # 记录最终失败的信息
-            with open(output_path.replace('.tif', '_error.txt'), 'w') as f:
-                f.write(f"下载失败: {str(e)}\n")
-            raise
-
-    raise GEEDownloadError(f"在 {max_retries} 次重试后仍然无法下载: {output_path}")
+    """下载子区域的影像"""
+    try:
+        url = await get_download_url(composite, sub_geometry)
+        await download_file(url, output_path, logger)
+    except Exception as e:
+        logger.error(f"获取下载链接或下载失败：{str(e)}")
+        raise
 
 def split_geometry_by_groups(geometry: ee.Geometry, num_groups: int) -> List[ee.Geometry]:
     """将研究区域划分为指定数量的组
