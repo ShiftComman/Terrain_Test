@@ -483,7 +483,7 @@ if __name__ == "__main__":
     output_folder = r'E:\GuiZhouProvinces\s2'
     start_date = '2023-01-01'
     end_date = '2023-12-31'
-    log_file = r'E:\GuiZhouProvinces\logs\download_gee.log'
+    log_file = r'E:\GuiZhouProvinces\logs\download_gees2.log'
     num_groups = 80
     # 将研究区域划分为80组进行处理
     main(region_path, output_folder, start_date, end_date, log_file, num_groups)
