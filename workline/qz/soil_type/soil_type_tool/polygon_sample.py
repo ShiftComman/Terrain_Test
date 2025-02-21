@@ -137,9 +137,9 @@ def process_rasters(polygon_path, raster_folder, output_path, output_format='csv
 
 
 if __name__ == "__main__":
-    polygon_path = Path(r"C:\Users\Runker\Desktop\ele_ky\ky_merge_data_single_2_split_curve_1.shp")
-    raster_folder = Path(r'F:\tif_features\county_feature\ky')
-    output_path = Path(r"F:\cache_data\zone_ana\ky\train_data\soil_type_predict.csv")
+    polygon_path = Path(r"F:\cache_data\shp_file\qz\ele_qz\qz_merge_data_single_result.shp")
+    raster_folder = Path(r'G:\tif_features\county_feature\qz')
+    output_path = Path(r"F:\cache_data\zone_ana\qz\train_data\soil_type_predict.csv")
     output_format = 'csv'
     
     # 使用多进程

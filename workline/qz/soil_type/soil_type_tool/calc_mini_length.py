@@ -70,6 +70,6 @@ def process_shapefile(input_shp, output_shp=None):
 
 if __name__ == "__main__":
     
-    input_shp = r"C:\Users\Runker\Desktop\ele_sb\gl_merge_data_single.shp"
-    output_shp = r"C:\Users\Runker\Desktop\ele_sb\gl_merge_data_singles.shp"
+    input_shp = r"F:\cache_data\shp_file\qz\ele_qz\qz_merge_data_single.shp"
+    output_shp = r"F:\cache_data\shp_file\qz\ele_qz\qz_merge_data_single_width.shp"
     process_shapefile(input_shp, output_shp)

@@ -114,7 +114,7 @@ def main(base_raster, input_vector, other_rasters_path, output_folder, output_cr
 if __name__ == "__main__":
     base_raster = r'F:\tif_features\county_feature\dj\dem.tif'
     input_vector = r'F:\cache_data\shp_file\dj\dj_extent_p_500.shp'
-    other_rasters_path = r"F:\tif_features\temp\calc"
+    other_rasters_path = r"F:\cache_data\tif_file_saga\saga\DJ"
     output_folder = r"F:\tif_features\county_feature\dj"
     os.makedirs(output_folder, exist_ok=True)
     output_crs = "EPSG:4545"

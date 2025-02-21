@@ -148,6 +148,7 @@ def main(point_shp_path, raster_folder_path, output_csv_path, keep_out_of_bounds
     logger.info("开始点采样过程")
 
     try:
+        os.makedirs(Path(output_csv_path).parent, exist_ok=True)
         sample_rasters(point_shp_path, raster_folder_path, output_csv_path, keep_out_of_bounds, fill_value, logger)
         logger.info("点采样过程完成")
     except Exception as e:
@@ -157,10 +158,10 @@ def main(point_shp_path, raster_folder_path, output_csv_path, keep_out_of_bounds
 
 # 测试
 if __name__ == "__main__":
-    point_shp_path = r"F:\cache_data\shp_file\ky\pca_filter_soiltype_train.shp"
-    raster_folder_path = r'F:\tif_features\county_feature\ky'
-    output_csv_path = r'F:\cache_data\zone_ana\ky\train_data\pca_soil_type_train_point.csv'
+    point_shp_path = r"F:\cache_data\shp_file\qz\filter_result_point_join.shp"
+    raster_folder_path = r'G:\tif_features\county_feature\qz'
+    output_csv_path = r'F:\cache_data\zone_ana\qz\train_data\soil_type_train_point.csv'
     keep_out_of_bounds = True
     fill_value = np.nan
-    log_file = r'F:\cache_data\zone_ana\ky\train_data\pca_point_sample.log'
+    log_file = r'F:\cache_data\zone_ana\qz\train_data\soil_type_train_point.log'
     main(point_shp_path, raster_folder_path, output_csv_path, keep_out_of_bounds, fill_value, log_file)
