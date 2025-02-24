@@ -491,14 +491,14 @@ class SoilPropertyPredictor:
 if __name__ == "__main__":
     # 配置参数
     config = {
-        "log_file": r"G:\soil_property_result\kyx\logs\predict_soil_properties.log", # 日志文件路径
-        "model_dir": r"G:\soil_property_result\kyx\models\soil_property\models", # 模型文件路径
-        "feature_dir": r"G:\tif_features\county_feature\ky", # 特征文件路径
-        "output_dir": r"G:\soil_property_result\kyx\soil_property_predict", # 输出文件路径
-        "training_data_path": r"G:\soil_property_result\kyx\table\soil_property_point.csv", # 训练数据路径
+        "log_file": r"G:\soil_property_result\glx\logs\predict_soil_properties.log", # 日志文件路径
+        "model_dir": r"G:\soil_property_result\glx\models\soil_property\models", # 模型文件路径
+        "feature_dir": r"G:\tif_features\county_feature\gl", # 特征文件路径
+        "output_dir": r"G:\soil_property_result\glx\soil_property_predict", # 输出文件路径
+        "training_data_path": r"G:\soil_property_result\glx\table\soil_property_point.csv", # 训练数据路径
         "coord_cols": ["lon", "lat"], # 坐标列
         "use_rk": True, # 是否使用RFRK模型
-        "shapefile_path": r"F:\cache_data\shp_file\ky\ky_extent.shp", # 掩膜矢量文件路径
+        "shapefile_path": r"F:\cache_data\shp_file\gl\gl_extent_5hm.shp", # 掩膜矢量文件路径
         "output_uncertainty": False, # 是否输出不确定性结果
         "output_visualization": False # 是否输出可视化结果
     }

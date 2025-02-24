@@ -424,18 +424,88 @@ class DrainageCapabilityAssessment:
         except Exception as e:
             print(f"归一化失败: {str(e)}")
             raise
-
+def filter_shp_by_field_value(shp_path, field_name, value_list, output_path):
+    """
+    筛选指定字段的指定值的shp并保存，支持中文属性表
+    """
+    try:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        gdal.SetConfigOption('SHAPE_ENCODING', 'UTF-8')
+        
+        # 读取输入shp
+        ds = ogr.Open(shp_path)
+        layer = ds.GetLayer()
+        
+        # 创建输出shp
+        driver = ogr.GetDriverByName('ESRI Shapefile')
+        if os.path.exists(output_path):
+            driver.DeleteDataSource(output_path)
+        out_ds = driver.CreateDataSource(output_path)
+        out_layer = out_ds.CreateLayer(
+            os.path.splitext(os.path.basename(output_path))[0],
+            layer.GetSpatialRef(),
+            layer.GetGeomType()
+        )
+        
+        # 复制字段结构并调整字段宽度
+        layer_defn = layer.GetLayerDefn()
+        for i in range(layer_defn.GetFieldCount()):
+            field_defn = layer_defn.GetFieldDefn(i)
+            if field_defn.GetType() == ogr.OFTString:
+                field_defn.SetWidth(254)  # 加大字符字段长度以支持中文
+            elif field_defn.GetType() == ogr.OFTReal:
+                field_defn.SetWidth(32)    # 加大数值字段宽度
+                field_defn.SetPrecision(8) # 设置小数位数
+            out_layer.CreateField(field_defn)
+        
+        # 筛选并复制要素
+        for feature in layer:
+            if feature.GetField(field_name) in value_list:
+                out_feature = ogr.Feature(out_layer.GetLayerDefn())
+                out_feature.SetGeometry(feature.GetGeometryRef().Clone())
+                for i in range(layer_defn.GetFieldCount()):
+                    out_feature.SetField(i, feature.GetField(i))
+                out_layer.CreateFeature(out_feature)
+                
+        out_ds = None
+        ds = None
+        print(f"已成功创建筛选后的Shapefile: {output_path}")
+        
+    except Exception as e:
+        print(f"筛选shp失败: {str(e)}")
+        raise
+    finally:
+        gdal.SetConfigOption('SHAPE_ENCODING', '')
+        
 if __name__ == "__main__":
     try:
-        workspace = r"C:\Users\Runker\Desktop\genarate_feature"
-        
+        # 工作空间
+        workspace = r"G:\soil_property_result\qzs\irrigation_drainage_generate"
+        # 栅格路径
+        raster_path = r"G:\tif_features\county_feature\qz"
+        # 变量名称
+        dem_name = "dem"
+        rainfall_name = "pre22_mean"
+        twi_name = "topographicwetnessindex"
+        slope_position_name = "slopepostion"
+         # 水源路径
+        water_sources_path = r"G:\soil_property_result\qzs\shp\water_sources.shp"
+        # 土地利用类型shp路径
+        land_use_path = r"F:\cache_data\shp_file\qz\qz_sd_polygon.shp"
+        # 河流、湖泊、水库、沟渠代码
+        field_name = 'DLBM'
+        # use_land_code_list = ["1101", "1102", "1103", "1107"]
+        use_land_code_list = ["11"]
+        # 筛选指定字段的指定值的shp并保存
+        if not os.path.exists(water_sources_path):
+            filter_shp_by_field_value(land_use_path, field_name, use_land_code_list, water_sources_path)
         # 准备输入数据
         input_data = {
-            'dem': os.path.join(workspace, "raster_file", "dem.tif"),
-            'drainage_network': os.path.join(workspace, "shp_file", "河流.shp"),
-            'rainfall': os.path.join(workspace, "raster_file", "pre2022mean.tif"),
-            'twi': os.path.join(workspace, "raster_file", "twi.tif"),
-            'slope_position': os.path.join(workspace, "raster_file", "slope_position.tif")
+            'dem': os.path.join(raster_path, f"{dem_name}.tif"),
+            'drainage_network': water_sources_path,
+            'rainfall': os.path.join(raster_path, f"{rainfall_name}.tif"),
+            'twi': os.path.join(raster_path, f"{twi_name}.tif"),
+            'slope_position': os.path.join(raster_path, f"{slope_position_name}.tif")
         }
         
         # 检查文件是否存在

@@ -80,32 +80,35 @@ class SoilClassificationPredictor:
         return mask
 
     @staticmethod
-    def predict_chunk_with_uncertainty(model, feature_data, max_chunk_size=100000):
+    def predict_chunk(model, feature_data, feature_names, need_uncertainty=False, max_chunk_size=100000):
+        """
+        根据需求选择是否计算不确定性的预测方法
+        """
         if not isinstance(model, RandomForestClassifier):
             raise ValueError("此方法仅适用于随机森林分类器")
         
         feature_data = feature_data.astype(np.float32)
-        
         predictions = np.zeros(feature_data.shape[0], dtype=np.int32)
-        uncertainties = np.zeros(feature_data.shape[0], dtype=np.float32)
+        uncertainties = np.zeros(feature_data.shape[0], dtype=np.float32) if need_uncertainty else None
         
         for i in range(0, feature_data.shape[0], max_chunk_size):
             chunk = feature_data[i:i+max_chunk_size]
+            chunk_df = pd.DataFrame(chunk, columns=feature_names)
             
-            # 获取每个样本的类别概率
-            probas = model.predict_proba(chunk)
-            
-            # 最高概率的类别作为预测结果
-            predictions[i:i+max_chunk_size] = np.argmax(probas, axis=1)
-            
-            # 使用1减去最高概率作为不确定性度量
-            uncertainties[i:i+max_chunk_size] = 1 - np.max(probas, axis=1)
+            if need_uncertainty:
+                # 如果需要不确定性，使用predict_proba
+                probas = model.predict_proba(chunk_df)
+                predictions[i:i+max_chunk_size] = np.argmax(probas, axis=1)
+                uncertainties[i:i+max_chunk_size] = 1 - np.max(probas, axis=1)
+            else:
+                # 如果不需要不确定性，直接使用predict
+                predictions[i:i+max_chunk_size] = model.predict(chunk_df)
         
-        return predictions, uncertainties
+        return (predictions, uncertainties) if need_uncertainty else predictions
 
     @staticmethod
     def process_raster_chunk(args):
-        model, feature_files, window, feature_names, mask = args
+        model, feature_files, window, feature_names, mask, need_uncertainty = args
         chunk_data = {}
         for file in feature_files:
             with rasterio.open(file) as src:
@@ -123,13 +126,18 @@ class SoilClassificationPredictor:
         feature_array = feature_array[valid_pixels]
         
         result = np.full((rows, cols), np.nan)
-        uncertainty = np.full((rows, cols), np.nan)
+        uncertainty = np.full((rows, cols), np.nan) if need_uncertainty else None
         
         if np.sum(valid_pixels) > 0:
-            predictions, uncertainties = SoilClassificationPredictor.predict_chunk_with_uncertainty(
-                model, feature_array)
-            result[valid_pixels] = predictions
-            uncertainty[valid_pixels] = uncertainties
+            if need_uncertainty:
+                predictions, uncertainties = SoilClassificationPredictor.predict_chunk(
+                    model, feature_array, feature_names, need_uncertainty=True)
+                result[valid_pixels] = predictions
+                uncertainty[valid_pixels] = uncertainties
+            else:
+                predictions = SoilClassificationPredictor.predict_chunk(
+                    model, feature_array, feature_names, need_uncertainty=False)
+                result[valid_pixels] = predictions
         
         return window, result, uncertainty
 
@@ -152,7 +160,7 @@ class SoilClassificationPredictor:
             chunks = [
                 (model, feature_files, Window(col, row, min(chunk_size, width - col), 
                                            min(chunk_size, height - row)),
-                 feature_names, mask)
+                 feature_names, mask, self.output_uncertainty)
                 for row in range(0, height, chunk_size) 
                 for col in range(0, width, chunk_size)
             ]
@@ -220,11 +228,11 @@ class SoilClassificationPredictor:
 if __name__ == "__main__":
     # 配置参数
     config = {
-        "log_file": r"E:\soil_property_result\wcx\logs\predict_soil_classification.log",
-        "model_dir": r"E:\soil_property_result\wcx\models\soil_classification\models",
-        "feature_dir": r"F:\tif_features\county_feature\wc",
-        "output_dir": r"E:\soil_property_result\wcx\soil_classification_predict",
-        "shapefile_path": r"F:\cache_data\shp_file\wc\wc_extent_p_500.shp",
+        "log_file": r"G:\soil_property_result\qzs\logs\predict_soil_classification.log",
+        "model_dir": r"G:\soil_property_result\qzs\models\soil_property_class\models",
+        "feature_dir": r"G:\tif_features\county_feature\qz",
+        "output_dir": r"G:\soil_property_result\qzs\soil_property_class_predict",
+        "shapefile_path": r"F:\cache_data\shp_file\qz\qz_extent_p_500.shp",
         "output_uncertainty": False,  # 是否输出不确定性结果
         "output_visualization": False  # 是否输出可视化结果
     }

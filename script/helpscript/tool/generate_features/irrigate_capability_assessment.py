@@ -388,11 +388,90 @@ class IrrigationCapabilityAssessment:
         except Exception as e:
             print(f"灌溉能力评估失败: {str(e)}")
             raise
+
+# 筛选指定字段的指定值的shp并保存
+def filter_shp_by_field_value(shp_path, field_name, value_list, output_path):
+    """
+    筛选指定字段的指定值的shp并保存，支持中文属性表
+    """
+    try:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        gdal.SetConfigOption('SHAPE_ENCODING', 'UTF-8')
         
+        # 读取输入shp
+        ds = ogr.Open(shp_path)
+        layer = ds.GetLayer()
+        
+        # 创建输出shp
+        driver = ogr.GetDriverByName('ESRI Shapefile')
+        if os.path.exists(output_path):
+            driver.DeleteDataSource(output_path)
+        out_ds = driver.CreateDataSource(output_path)
+        out_layer = out_ds.CreateLayer(
+            os.path.splitext(os.path.basename(output_path))[0],
+            layer.GetSpatialRef(),
+            layer.GetGeomType()
+        )
+        
+        # 复制字段结构并调整字段宽度
+        layer_defn = layer.GetLayerDefn()
+        for i in range(layer_defn.GetFieldCount()):
+            field_defn = layer_defn.GetFieldDefn(i)
+            if field_defn.GetType() == ogr.OFTString:
+                field_defn.SetWidth(254)  # 加大字符字段长度以支持中文
+            elif field_defn.GetType() == ogr.OFTReal:
+                field_defn.SetWidth(32)    # 加大数值字段宽度
+                field_defn.SetPrecision(8) # 设置小数位数
+            out_layer.CreateField(field_defn)
+        
+        # 筛选并复制要素
+        for feature in layer:
+            if feature.GetField(field_name) in value_list:
+                out_feature = ogr.Feature(out_layer.GetLayerDefn())
+                out_feature.SetGeometry(feature.GetGeometryRef().Clone())
+                for i in range(layer_defn.GetFieldCount()):
+                    out_feature.SetField(i, feature.GetField(i))
+                out_layer.CreateFeature(out_feature)
+                
+        out_ds = None
+        ds = None
+        print(f"已成功创建筛选后的Shapefile: {output_path}")
+        
+    except Exception as e:
+        print(f"筛选shp失败: {str(e)}")
+        raise
+    finally:
+        gdal.SetConfigOption('SHAPE_ENCODING', '')
+    
 if __name__ == "__main__":
     try:
         # 设置工作空间
-        workspace = r"C:\Users\Runker\Desktop\genarate_feature"
+        workspace = r"G:\soil_property_result\qzs\irrigation_drainage_generate"
+        # 设置栅格路径
+        raster_path = r"G:\tif_features\county_feature\qz"
+        # 变量名称
+        dem_name = "dem"
+        rainfall_name = "pre22_mean"
+        twi_name = "topographicwetnessindex"
+        slope_position_name = "slopepostion"
+        # 水源路径
+        water_sources_path = r"G:\soil_property_result\qzs\shp\water_sources.shp"
+         # 土地利用类型shp路径
+        land_use_path = r"F:\cache_data\shp_file\qz\qz_sd_polygon.shp"
+        # 河流、湖泊、水库、沟渠代码
+        field_name = 'DLBM'
+        # use_land_code_list = ["1101", "1102", "1103", "1107"]
+        use_land_code_list = ["11"]
+        # 筛选指定字段的指定值的shp并保存
+        filter_shp_by_field_value(land_use_path, field_name, use_land_code_list, water_sources_path)
+        # 变量名称
+        dem_name = "dem"
+        rainfall_name = "pre22_mean"
+        twi_name = "topographicwetnessindex"
+        slope_position_name = "slopepostion"
+
+    
+        os.makedirs(workspace, exist_ok=True)
         print(f"工作空间: {workspace}")
         
         # 自定义参数示例
@@ -411,62 +490,18 @@ if __name__ == "__main__":
         }
         
         # 准备输入数据
-        input_data = {
-            'dem': os.path.join(workspace, "raster_file", "dem.tif"),
-            'water_sources': os.path.join(workspace, "shp_file", "河流.shp"),
-            'rainfall': os.path.join(workspace, "raster_file", "pre2022mean.tif"),
-            'twi': os.path.join(workspace, "raster_file", "twi.tif"),
-            'slope_position': os.path.join(workspace, "raster_file", "slope_position.tif")
-        }
         
-        # 检查文件并打印详细信息
+        input_data = {
+            'dem': os.path.join(raster_path, f"{dem_name}.tif"),
+            'water_sources': water_sources_path,
+            'rainfall': os.path.join(raster_path, f"{rainfall_name}.tif"),
+            'twi': os.path.join(raster_path, f"{twi_name}.tif"),
+            'slope_position': os.path.join(raster_path, f"{slope_position_name}.tif")
+        }
+        # 检查文件是否存在
         for key, path in input_data.items():
             if not os.path.exists(path):
-                print(f"错误：文件不存在: {path}")
-                continue
-            
-            try:
-                if path.endswith('.tif'):
-                    # 栅格文件检查
-                    ds = gdal.Open(path)
-                    if ds is None:
-                        raise ValueError(f"无法打开栅格文件")
-                    
-                    cell_size = ds.GetRasterBand(1).XSize
-                    print(f"找到栅格文件: {path}")
-                    print(f"  分辨率: {cell_size}")
-                    print(f"  投影: {ds.GetProjection()}")
-                    ds = None  # 关闭数据集
-                    
-                elif path.endswith('.shp'):
-                    # 矢量文件检查
-                    ds = ogr.Open(path)
-                    if ds is None:
-                        raise ValueError(f"无法打开矢量文件")
-                    
-                    layer = ds.GetLayer()
-                    spatial_ref = layer.GetSpatialRef()
-                    feature_count = layer.GetFeatureCount()
-                    
-                    print(f"找到矢量文件: {path}")
-                    print(f"  要素数量: {feature_count}")
-                    if spatial_ref:
-                        print(f"  投影: {spatial_ref.ExportToWkt()}")
-                    else:
-                        print(f"  警告: 未定义投影")
-                    
-                    # 检查字段
-                    layer_def = layer.GetLayerDefn()
-                    field_names = [layer_def.GetFieldDefn(i).GetName() 
-                                 for i in range(layer_def.GetFieldCount())]
-                    print(f"  字段: {', '.join(field_names)}")
-                    
-                    ds = None  # 关闭数据集
-                    
-            except Exception as e:
-                print(f"警告：文件检查出错: {path}")
-                print(f"  错误信息: {str(e)}")
-        
+                raise ValueError(f"文件不存在: {path}")
         # 使用自定义参数创建评估对象
         assessment = IrrigationCapabilityAssessment(workspace, custom_params)
         capability, levels = assessment.assess_irrigation_capability(**input_data)

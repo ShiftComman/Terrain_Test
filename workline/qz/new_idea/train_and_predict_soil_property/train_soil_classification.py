@@ -424,48 +424,16 @@ def main(file_path, label_cols, feature_cols, param_grid, save_dir, log_file, us
 
 if __name__ == "__main__":
     # 测试配置
-    file_path = r'C:\Users\Runker\Desktop\test\table\soil_property_point.csv'
+    file_path = r"G:\soil_property_result\qzs\table\soil_property_point.csv"
     label_cols = ["TRZD"]  # 修改为列表
-    feature_cols = ['analyticalhillshading',
-                    'aspect',
-                    'channelnetworkbaselevel',
-                    'channelnetworkdistance',
-                    'convergenceindex',
-                    'dem',
-                    'dl',
-                    'dz',
-                    'etp20223',
-                    'etp20228',
-                    'etp2022mean',
-                    'evi',
-                    'lsfactor',
-                    'lswi',
-                    'mndwi',
-                    'mrrtf',
-                    'mrvbf',
-                    'ndmi',
-                    'ndvi',
-                    'ndwi',
-                    'night2022',
-                    'pca1',
-                    'pca2',
-                    'plancurvature',
-                    'pre20223',
-                    'pre20228',
-                    'pre2022mean',
-                    'profilecurvature',
-                    'relativeslopeposition',
-                    'savi',
-                    'slope',
-                    'slopeclass',
-                    'tmp20223',
-                    'tmp20228',
-                    'tmp2022mean',
-                    'topographicwetnessindex',
-                    'totalcatchmentarea',
-                    'valleydepth',
-                    'vari']
-    coord_cols = ["lon", "lat"]
+    feature_cols = ['PH','CEC','OM','TN','TP','TK','TSE','AP','SK','AK','HG','AS2','PB','CD','CR','TRRZ','GZCHD','YXTCHD',]  # 修改为列表
+    feature_cols = ['aspect', 'carbonate', 'channelnetworkbaselevel', 'channelnetworkdistance', 'clay_minerals', 'contrast', 
+                'convergenceindex', 'correlation', 'dem', 'dissimilarity', 'dl', 'dz', 'entropy', 'etp22_3', 'etp22_mean', 
+                'evi', 'ferrous_minerals', 'hillshade', 'homogeneity', 'lsfactor', 'lswi', 'mean', 'mndwi', 
+                'mrrtf', 'mrvbf', 'ndmi', 'ndvi', 'ndwi', 'night22_', 'pc1', 'pc2', 'plancurvature', 'pre22_3', 'pre22_mean', 
+                'profilecurvature', 'relativeslopeposition', 'rock_outcrop', 'savi', 'secondmoment', 'slope', 'slopepostion', 
+                'terrainruggednessindex', 'tmp22_3', 'tmp22_mean', 'topographicwetnessindex', 'totalcatchmentarea', 'valleydepth',
+                'vari', 'variance','lon','lat']
     param_grid = {
         'n_estimators': np.arange(10, 1000, 10),
         'max_depth': [None] + list(np.arange(10, 100, 10)),
@@ -473,7 +441,7 @@ if __name__ == "__main__":
         'min_samples_leaf': np.arange(1, 10, 1)
     }
     use_feature_optimization = True
-    save_dir = r'C:\Users\Runker\Desktop\test\models\soil_property'
-    log_file = r'C:\Users\Runker\Desktop\test\logs\train_soil_property.log'
-    cv = 5
-    main(file_path, label_cols, feature_cols+coord_cols, param_grid, save_dir, log_file, use_feature_optimization, cv)
+    save_dir = r"G:\soil_property_result\qzs\models\soil_property_class"
+    log_file = r"G:\soil_property_result\qzs\logs\train_soil_property_class.log"
+    cv = 10
+    main(file_path, label_cols, feature_cols,param_grid, save_dir, log_file, use_feature_optimization, cv)
