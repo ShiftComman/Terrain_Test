@@ -1,5 +1,5 @@
-./script/AutogluonModels
-./data/csv_file
+script/AutogluonModels
+data/csv_file
 .env
 # 添加以下行来忽略 region_all.json 文件
-./data/grade_evaluation/region_all.json
+data/grade_evaluation/region_all.json

@@ -85,10 +85,16 @@ class MembershipFunctions:
     def peak(value: np.ndarray, u_min: float, u_max: float, a: float, c: float) -> np.ndarray:
         return np.where((value <= u_min) | (value >= u_max), 0.0, 1 / (1 + a * (value - c) ** 2))
 
+    @staticmethod
+    def lower_bound(value: np.ndarray, u_min: float, u_max: float, a: float, c: float) -> np.ndarray:
+        return np.where(value <= u_min, 1.0,
+                        np.where(value >= u_max, 0.0, 1 / (1 + a * (value - c) ** 2)))
+
 FUNCTION_MAP = {
     "负直线型": MembershipFunctions.negative_linear,
     "戒上型": MembershipFunctions.upper_bound,
-    "峰型": MembershipFunctions.peak
+    "峰型": MembershipFunctions.peak,
+    "戒下型": MembershipFunctions.lower_bound
 }
 
 # 耕地质量评价类
