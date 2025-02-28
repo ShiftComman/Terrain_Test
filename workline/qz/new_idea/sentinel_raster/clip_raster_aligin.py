@@ -114,8 +114,8 @@ def main(base_raster, input_vector, other_rasters_path, output_folder, output_cr
 if __name__ == "__main__":
     base_raster = r'G:\tif_features\county_feature\qz\dem.tif'
     input_vector = r'F:\cache_data\shp_file\qz\qz_extent_p_500.shp'
-    other_rasters_path = r"F:\tif_features\temp\calc"
-    output_folder = r"G:\tif_features\county_feature\qz"
-    output_crs = "EPSG:4545"
+    other_rasters_path = r"G:\soil_property_result\qzs\irrigation_drainage_generate"
+    output_folder = r"G:\soil_property_result\qzs\irrigation_drainage_generate"
+    output_crs = "EPSG:4544"
     log_file = r'F:\tif_features\temp\calc\logs\clip_raster_aligin.log'
     main(base_raster, input_vector, other_rasters_path, output_folder, output_crs, log_file)

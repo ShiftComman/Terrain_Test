@@ -307,5 +307,5 @@ if __name__ == "__main__":
         simplify=True,
         simplify_tolerance=0.001,
         use_multiprocessing=True,
-        num_workers=6
+        num_workers=10
     ) 

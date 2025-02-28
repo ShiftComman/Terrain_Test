@@ -122,7 +122,7 @@ def get_nearest_point_attributes(
 if __name__ == "__main__":
     # 示例参数
     input_csv = r"G:\soil_property_result\qzs\grade_evaluation\table\grade_evaluation_sample.csv"
-    point_shp = r"G:\soil_property_result\qzs\shp\qz_result_point.shp"
+    point_shp = r"G:\soil_property_result\qzs\shp\qz_result_point4544.shp"
     output_csv = r"G:\soil_property_result\qzs\grade_evaluation\table\grade_evaluation_sample_near.csv"
     fields = ['TRZD']
     

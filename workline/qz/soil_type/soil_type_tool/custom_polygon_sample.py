@@ -212,7 +212,7 @@ def process_rasters_custom(
     raster_pbar.close()
 
 if __name__ == "__main__":
-    polygon_path = Path(r"F:\cache_data\shp_file\qz\ele_qz\qz_merge_data_single_result.shp")
+    polygon_path = Path(r"F:\cache_data\shp_file\qz\ele_qz\merge_data_result.shp")
     output_path = Path(r"F:\cache_data\zone_ana\qz\train_data\custom_soil_type_predict.csv")
     raster_folder = Path(r"G:\tif_features\county_feature\qz")
     

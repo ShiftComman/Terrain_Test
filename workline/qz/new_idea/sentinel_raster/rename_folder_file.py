@@ -50,9 +50,9 @@ def rename_tif_files(directory, target_str, replace_str="", to_lower=False, to_u
 # 使用示例
 if __name__ == "__main__":
     # 设置参数
-    directory = r"G:\tif_features\county_feature\qz"  # 替换为你的文件夹路径
-    target_str = "2022"                 # 要删除或替换的字符串
-    replace_str = "22_"                # 替换后的字符串（如果只想删除，设为空字符串""）
+    directory = r"G:\soil_property_result\qzs\soil_property_class_predict"  # 替换为你的文件夹路径
+    target_str = "a_"                 # 要删除或替换的字符串
+    replace_str = ""                # 替换后的字符串（如果只想删除，设为空字符串""）
     to_lower = True                     # 是否转换为小写
     to_upper = False                    # 是否转换为大写
     
